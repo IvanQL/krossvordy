@@ -133,7 +133,11 @@ function _denseAttempt(pool,target,minWords){
 
 function makeScanwordDense(entries,opts={}){
   const pool=_normPool(entries,opts.maxLen||7);
-  const target=opts.target||28,minW=opts.minWords||14,tries=opts.tries||20;
+  // подгоняем запросы под реальный размер пула: для маленьких тем (мало слов)
+  // нельзя требовать фиксированные 24+ слова — иначе генератор всегда вернёт null
+  const target=Math.min(opts.target||28,pool.length);
+  const minW=Math.min(opts.minWords||14,Math.max(6,Math.floor(pool.length*0.85)));
+  const tries=opts.tries||20;
   let best=null,bestFill=0;
   for(let t=0;t<tries;t++){
     const sw=_denseAttempt(_shuf(pool).slice(0,80),target,minW);

@@ -79,7 +79,7 @@ function newPuzzle(){
     const opts=isScan?(SCAN_SIZES[size]||SCAN_SIZES.medium):(SIZES[size]||SIZES.medium);
     let gen=null,n=0;
     while(!gen&&n<4){gen=isScan?makeScanword(entries,opts):makeCrossword(entries,opts);n++;}
-    if(!gen) gen=isScan?makeScanword(entries,{target:18,maxLen:5,tries:60,minWords:10,attempts:4}):makeCrossword(entries,{target:8,maxLen:7,tries:30});
+    if(!gen) gen=isScan?makeScanword(entries,{target:18,maxLen:7,tries:60,minWords:6,dense:true}):makeCrossword(entries,{target:8,maxLen:7,tries:30});
     model=isScan?buildScanModel(gen):buildModel(gen); celebrated=false;
     isScan?renderScan():render(); selectFirst(); saveState();
     $("loading").style.display="none";
@@ -192,13 +192,15 @@ function onClueTap(cell,dir){
 function selectFirst(){const w=model.ordered[0];activeDir=w.dir;activeKey=w.start;refresh();}
 function activeWord(){return model.cells.get(activeKey)[activeDir];}
 function focusHidden(){
-  hidden.value="";try{hidden.focus({preventScroll:true});}catch(e){hidden.focus();}
+  hidden.textContent="";try{hidden.focus({preventScroll:true});}catch(e){hidden.focus();}
 }
 
 // ---- ввод ----
+// contenteditable вместо <input>: на iOS Safari у contenteditable нет
+// «панели-ассистента» (‹ › Готово) над клавиатурой, но клавиатура нативная
 hidden.addEventListener("input",()=>{
-  const v=hidden.value; hidden.value="";
-  const ch=v.slice(-1).toUpperCase();
+  const v=hidden.textContent; hidden.textContent="";
+  const ch=(v.slice(-1)||"").toUpperCase();
   if(/[А-ЯЁ]/.test(ch)) typeLetter(ch==="Ё"?"Е":ch);
 });
 hidden.addEventListener("keydown",e=>{
