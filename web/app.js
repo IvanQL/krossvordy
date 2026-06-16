@@ -108,7 +108,7 @@ function render(){
 // ---- отрисовка сканворда ----
 function renderScan(){
   gridEl.classList.add("scanword");
-  $("cluebar").style.display="none";
+  $("cluebar").style.display="";
   gridEl.style.gridTemplateColumns=`repeat(${model.cols}, var(--cs))`;
   gridEl.innerHTML="";
   // large background icons based on theme, shown through transparent gap cells
