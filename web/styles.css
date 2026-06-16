@@ -125,11 +125,19 @@ select{font-family:"Nunito";font-weight:700;font-size:14px;color:var(--ink);back
 }
 .grid.scanword{position:relative;z-index:1;background:rgba(40,36,61,.05)}
 .grid.scanword .gap{background:transparent}
-.scan-bg{position:absolute;z-index:-1;font-size:min(160px,35vw);line-height:1;opacity:.16;pointer-events:none;user-select:none}
-.scan-bg-1{top:-6px;left:0}
-.scan-bg-2{bottom:-6px;right:0}
-.cell.clue-cell{background:var(--paper);border-color:rgba(40,36,61,.35);cursor:pointer;overflow:hidden}
-.cell.clue-cell .arrow{position:absolute;font-size:calc(var(--cs)*.42);line-height:1;font-weight:900;color:var(--ink)}
-.cell.clue-cell .arrow.a{bottom:1px;left:2px}
-.cell.clue-cell .arrow.d{top:1px;right:2px}
+.scan-bg{position:absolute;z-index:-1;line-height:1;pointer-events:none;user-select:none}
+.scan-bg-1{top:-10px;left:-4px;font-size:min(140px,30vw);opacity:.17;transform:rotate(-8deg)}
+.scan-bg-2{bottom:-10px;right:-4px;font-size:min(150px,32vw);opacity:.16;transform:rotate(7deg)}
+.scan-bg-3{top:-6px;right:6px;font-size:min(96px,21vw);opacity:.13;transform:rotate(10deg)}
+.scan-bg-4{bottom:-4px;left:6px;font-size:min(100px,22vw);opacity:.13;transform:rotate(-6deg)}
+.cell.clue-cell{background:var(--paper);border-color:rgba(40,36,61,.35);cursor:pointer;overflow:hidden;
+  display:flex;flex-direction:column;justify-content:center;padding:1px}
+.cell.clue-cell .qline{display:flex;align-items:center;justify-content:center;gap:1px;flex:1;min-height:0;overflow:hidden}
+.cell.clue-cell.multi .qline{border-bottom:.5px solid rgba(40,36,61,.22)}
+.cell.clue-cell.multi .qline:last-child{border-bottom:0}
+.cell.clue-cell .qtext{flex:0 1 auto;min-width:0;font-family:"Nunito";font-weight:700;
+  font-size:calc(var(--cs)*.165);line-height:1.02;color:var(--ink);text-align:center;
+  overflow:hidden;word-break:break-word;hyphens:auto}
+.cell.clue-cell .arrow{flex:0 0 auto;font-size:calc(var(--cs)*.36);line-height:1;font-weight:900;color:var(--berry)}
 .cell.clue-cell.clue-active{background:var(--berry-tint)}
+.cell.clue-cell.clue-active .arrow{color:var(--ink)}

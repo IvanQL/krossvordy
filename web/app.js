@@ -1,7 +1,15 @@
 // ================= UI / логика =================
 const $=id=>document.getElementById(id);
 const SIZES={small:{target:10,maxLen:7,tries:42},medium:{target:14,maxLen:8,tries:36},large:{target:18,maxLen:9,tries:30}};
-const THEME_ICONS={"Животные":["🦁","🐘"],"Природа":["🌸","🌿"],"Еда":["🍎","🍕"],"Дом":["🏠","🌻"],"Школа":["📚","🎓"],"Транспорт":["✈️","🚂"],"Люди":["🎭","🤝"]};
+const THEME_ICONS={
+  "Животные":["🦁","🐘","🦒","🐻"],
+  "Природа":["🌸","🌿","🌲","🍄"],
+  "Еда":["🍎","🍕","🍰","🍓"],
+  "Дом":["🏠","🌻","🛋️","🕯️"],
+  "Школа":["📚","🎓","✏️","🔬"],
+  "Транспорт":["✈️","🚂","🚗","⛵"],
+  "Люди":["🎭","🤝","👨‍🎨","🧑‍🚀"]
+};
 const SCAN_SIZES={small:{target:20,maxLen:5,tries:14,minWords:12,dense:true},medium:{target:30,maxLen:6,tries:16,minWords:18,dense:true},large:{target:38,maxLen:7,tries:12,minWords:24,dense:true}};
 
 let model=null, activeKey=null, activeDir="a", celebrated=false, mode="crossword";
@@ -101,6 +109,7 @@ function newPuzzle(){
 function render(){
   gridEl.classList.remove("scanword");
   gridEl.parentElement.classList.remove("scan-mode");
+  $("cluebar").style.display="";
   gridEl.style.gridTemplateColumns=`repeat(${model.cols}, var(--cs))`;
   gridEl.innerHTML="";
   for(let r=0;r<model.rows;r++) for(let c=0;c<model.cols;c++){
@@ -118,15 +127,16 @@ function render(){
 // ---- отрисовка сканворда ----
 function renderScan(){
   gridEl.classList.add("scanword");
+  $("cluebar").style.display="none";
   gridEl.style.gridTemplateColumns=`repeat(${model.cols}, var(--cs))`;
   gridEl.innerHTML="";
-  // two large background icons based on theme, shown through transparent gap cells
-  const _th=$("themeSel").value, _ic=THEME_ICONS[_th]||["🌟","🎉"];
-  ["scan-bg scan-bg-1","scan-bg scan-bg-2"].forEach((cls,i)=>{
-    const bg=document.createElement("div");bg.className=cls;
-    bg.textContent=_ic[i];bg.setAttribute("aria-hidden","true");
+  // large background icons based on theme, shown through transparent gap cells
+  const _th=$("themeSel").value, _ic=THEME_ICONS[_th]||["🌟","🎉","✨","🎈"];
+  for(let i=0;i<4;i++){
+    const bg=document.createElement("div");bg.className="scan-bg scan-bg-"+(i+1);
+    bg.textContent=_ic[i]||_ic[i%_ic.length];bg.setAttribute("aria-hidden","true");
     gridEl.appendChild(bg);
-  });
+  }
   gridEl.parentElement.classList.add("scan-mode");
   for(let r=0;r<model.rows;r++) for(let c=0;c<model.cols;c++){
     const k=K(r,c), cell=model.cells.get(k);
@@ -136,8 +146,14 @@ function renderScan(){
     }
     const d=document.createElement("div");
     if(cell.isClue){
-      d.className="cell clue-cell";
-      d.innerHTML=cell.clues.map(cl=>`<span class="arrow ${cl.dir}">${cl.dir==="a"?"→":"↓"}</span>`).join("");
+      d.className="cell clue-cell"+(cell.clues.length>1?" multi":"");
+      d.title=cell.clues.map(cl=>cl.clue).join(" / ");
+      for(const cl of cell.clues){
+        const line=document.createElement("div");line.className="qline";
+        const tx=document.createElement("span");tx.className="qtext";tx.textContent=cl.clue;
+        const ar=document.createElement("span");ar.className="arrow "+cl.dir;ar.textContent=cl.dir==="a"?"→":"↓";
+        line.appendChild(tx);line.appendChild(ar);d.appendChild(line);
+      }
       d.addEventListener("click",()=>onClueTap(cell));
     }else{
       d.className="cell"; d.dataset.k=k;
