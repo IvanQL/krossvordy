@@ -1,6 +1,7 @@
 // ================= UI / логика =================
 const $=id=>document.getElementById(id);
 const SIZES={small:{target:10,maxLen:7,tries:42},medium:{target:14,maxLen:8,tries:36},large:{target:18,maxLen:9,tries:30}};
+const THEME_ICONS={"Животные":["🦁","🐘"],"Природа":["🌸","🌿"],"Еда":["🍎","🍕"],"Дом":["🏠","🌻"],"Школа":["📚","🎓"],"Транспорт":["✈️","🚂"],"Люди":["🎭","🤝"]};
 const SCAN_SIZES={small:{target:20,maxLen:5,tries:14,minWords:12,dense:true},medium:{target:30,maxLen:6,tries:16,minWords:18,dense:true},large:{target:38,maxLen:7,tries:12,minWords:24,dense:true}};
 
 let model=null, activeKey=null, activeDir="a", celebrated=false, mode="crossword";
@@ -99,6 +100,7 @@ function newPuzzle(){
 // ---- отрисовка кроссворда ----
 function render(){
   gridEl.classList.remove("scanword");
+  gridEl.parentElement.classList.remove("scan-mode");
   gridEl.style.gridTemplateColumns=`repeat(${model.cols}, var(--cs))`;
   gridEl.innerHTML="";
   for(let r=0;r<model.rows;r++) for(let c=0;c<model.cols;c++){
@@ -118,9 +120,20 @@ function renderScan(){
   gridEl.classList.add("scanword");
   gridEl.style.gridTemplateColumns=`repeat(${model.cols}, var(--cs))`;
   gridEl.innerHTML="";
+  // two large background icons based on theme, shown through transparent gap cells
+  const _th=$("themeSel").value, _ic=THEME_ICONS[_th]||["🌟","🎉"];
+  ["scan-bg scan-bg-1","scan-bg scan-bg-2"].forEach((cls,i)=>{
+    const bg=document.createElement("div");bg.className=cls;
+    bg.textContent=_ic[i];bg.setAttribute("aria-hidden","true");
+    gridEl.appendChild(bg);
+  });
+  gridEl.parentElement.classList.add("scan-mode");
   for(let r=0;r<model.rows;r++) for(let c=0;c<model.cols;c++){
     const k=K(r,c), cell=model.cells.get(k);
-    if(!cell){const g=document.createElement("div");g.className="gap";gridEl.appendChild(g);continue;}
+    if(!cell){
+      const g=document.createElement("div");g.className="gap";
+      gridEl.appendChild(g);continue;
+    }
     const d=document.createElement("div");
     if(cell.isClue){
       d.className="cell clue-cell";

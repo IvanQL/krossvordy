@@ -116,7 +116,18 @@ select{font-family:"Nunito";font-weight:700;font-size:14px;color:var(--ink);back
 .sk.del:active{background:#9B9690}
 
 /* ---- сканворд ---- */
-.grid.scanword .gap{background:var(--ink)}
+.gridwrap.scan-mode{
+  background:
+    radial-gradient(ellipse 65% 55% at 14% 14%,rgba(196,69,105,.08) 0%,transparent 70%),
+    radial-gradient(ellipse 65% 55% at 86% 86%,rgba(42,157,143,.08) 0%,transparent 70%),
+    var(--paper);
+  border-radius:12px;
+}
+.grid.scanword{position:relative;z-index:1;background:rgba(40,36,61,.05)}
+.grid.scanword .gap{background:transparent}
+.scan-bg{position:absolute;z-index:-1;font-size:min(160px,35vw);line-height:1;opacity:.16;pointer-events:none;user-select:none}
+.scan-bg-1{top:-6px;left:0}
+.scan-bg-2{bottom:-6px;right:0}
 .cell.clue-cell{background:var(--paper);border-color:rgba(40,36,61,.35);cursor:pointer;overflow:hidden}
 .cell.clue-cell .arrow{position:absolute;font-size:calc(var(--cs)*.42);line-height:1;font-weight:900;color:var(--ink)}
 .cell.clue-cell .arrow.a{bottom:1px;left:2px}
