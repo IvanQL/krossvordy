@@ -20,8 +20,14 @@ Heavy puzzles are generated **offline** by a script and stored in the DB.
 - `web/index.html`, `web/styles.css` — markup and styles (UI is in Russian).
 - `web/crossword.js` — crossword generator. Exports: `makeCrossword(entries, opts)`, `normalizeEntries`, `K`.
 - `web/scanword.js` — scanword generator. Exports: `makeScanword(entries, opts)`. Reuses `crossword.js`.
-- `web/dictionary.js` — word base: `const DICTIONARY=[{a,c,t}]` (229 words, NO «Ё» in `a`).
+- `web/dictionary.js` — word base: `const DICTIONARY=[{a,c,t}]`, NO «Ё» in `a`.
+  GENERATED: 229 curated (themes Животные…Школа) + ~2600 imported into theme «Эрудит».
+  Do NOT hand-edit the «Эрудит» rows — rerun `npm run build:dict` instead (idempotent).
 - `web/app.js` — game logic and UI (currently plays crosswords, generated in the browser).
+- `scripts/build-dictionary.js` — offline base builder. Reads `data/raw/{ozhegov.txt,freq50k.txt}`
+  (open datasets), filters to clean nouns 4–9 letters in a difficulty band, turns Ozhegov
+  definitions into clues, merges onto the curated themes → rewrites `web/dictionary.js`.
+  `npm run build:dict` (dry run) / `npm run build:dict -- --write` (write). Keep `bench` green.
 - `scripts/generate.js` — offline generation → `data/puzzles.json` (+ upload to Supabase via REST).
 - `scripts/bench.js` — validation and measurements (`npm run bench`).
 - `supabase/schema.sql` — tables `words/puzzles/profiles/progress` + RLS + auto-profile.

@@ -1,7 +1,13 @@
 {
   "permissions": {
     "allow": [
-      "Bash(node -e ' *)"
+      "Bash(node -e ' *)",
+      "Bash(npm run *)",
+      "WebSearch",
+      "WebFetch(domain:github.com)",
+      "Bash(mkdir -p data/raw)",
+      "Bash(node scripts/build-dictionary.js)",
+      "Bash(node scripts/build-dictionary.js --write)"
     ]
   }
 }

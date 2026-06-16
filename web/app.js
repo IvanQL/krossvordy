@@ -192,14 +192,12 @@ function onClueTap(cell,dir){
 function selectFirst(){const w=model.ordered[0];activeDir=w.dir;activeKey=w.start;refresh();}
 function activeWord(){return model.cells.get(activeKey)[activeDir];}
 function focusHidden(){
-  hidden.textContent="";try{hidden.focus({preventScroll:true});}catch(e){hidden.focus();}
+  hidden.value="";try{hidden.focus({preventScroll:true});}catch(e){hidden.focus();}
 }
 
 // ---- ввод ----
-// contenteditable вместо <input>: на iOS Safari у contenteditable нет
-// «панели-ассистента» (‹ › Готово) над клавиатурой, но клавиатура нативная
 hidden.addEventListener("input",()=>{
-  const v=hidden.textContent; hidden.textContent="";
+  const v=hidden.value; hidden.value="";
   const ch=(v.slice(-1)||"").toUpperCase();
   if(/[А-ЯЁ]/.test(ch)) typeLetter(ch==="Ё"?"Е":ch);
 });
