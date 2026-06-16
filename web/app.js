@@ -37,6 +37,15 @@ const isMobile=window.matchMedia("(pointer:coarse) and (hover:none)").matches;
   });
 })();
 
+// iOS: запрет масштабирования — иначе жест зума тянет и фикс-клавиатуру
+(function blockZoom(){
+  if(!isMobile)return;
+  ["gesturestart","gesturechange","gestureend"].forEach(ev=>
+    document.addEventListener(ev,e=>e.preventDefault(),{passive:false}));
+  document.addEventListener("touchstart",e=>{if(e.touches.length>1)e.preventDefault();},{passive:false});
+  document.addEventListener("touchmove",e=>{if(e.touches.length>1)e.preventDefault();},{passive:false});
+})();
+
 // ---- хранилище ----
 const Store={
   async get(k){try{if(window.storage&&window.storage.get){const r=await window.storage.get(k);return r?r.value:null;}return localStorage.getItem(k);}catch(e){return null;}},
@@ -153,6 +162,7 @@ function renderScan(){
         const tx=document.createElement("span");tx.className="qtext";tx.textContent=cl.clue;
         const ar=document.createElement("span");ar.className="arrow "+cl.dir;ar.textContent=cl.dir==="a"?"→":"↓";
         line.appendChild(tx);line.appendChild(ar);d.appendChild(line);
+        line.addEventListener("click",e=>{e.stopPropagation();onClueTap(cell,cl.dir);});
       }
       d.addEventListener("click",()=>onClueTap(cell));
     }else{
@@ -162,7 +172,7 @@ function renderScan(){
     }
     cell.el=d; gridEl.appendChild(d);
   }
-  layoutGrid();
+  layoutGrid(); fitClueText();
   $("cluePanel").innerHTML=""; $("mobileClues").innerHTML="";
 }
 
@@ -172,7 +182,19 @@ function layoutGrid(){
   cs=Math.max(20,Math.min(cs,46));
   document.documentElement.style.setProperty("--cs",cs+"px");
 }
-window.addEventListener("resize",()=>{if(model)layoutGrid();});
+// сжимаем текст вопроса, пока он не влезет в клетку
+function fitClueText(){
+  if(!gridEl.classList.contains("scanword"))return;
+  gridEl.querySelectorAll(".clue-cell .qtext").forEach(tx=>{
+    tx.style.fontSize="";                 // вернуть базовый размер из CSS
+    const box=tx.parentElement;           // .qline
+    let fs=parseFloat(getComputedStyle(tx).fontSize),guard=0;
+    while((tx.scrollWidth>box.clientWidth+0.5||tx.scrollHeight>box.clientHeight+0.5)&&fs>4&&guard<60){
+      fs-=0.5;tx.style.fontSize=fs+"px";guard++;
+    }
+  });
+}
+window.addEventListener("resize",()=>{if(model){layoutGrid();fitClueText();}});
 
 // ---- выбор клетки/слова ----
 function onCellTap(k){
@@ -181,9 +203,16 @@ function onCellTap(k){
   else{activeKey=k;if(!c[activeDir]) activeDir=c.a?"a":"d";}
   focusHidden(); refresh();
 }
-function onClueTap(cell){
-  // prefer the direction matching activeDir, else take first
-  const cl=cell.clues.find(x=>x.dir===activeDir)||cell.clues[0];
+function onClueTap(cell,dir){
+  let cl;
+  if(dir){cl=cell.clues.find(x=>x.dir===dir);}
+  if(!cl){
+    // no explicit direction (tap on cell body): toggle if we're already on one of its words
+    const w=activeKey?activeWord():null;
+    const onThis=w&&((w.dir==="a"&&cell.r===w.r&&cell.c===w.c-1)||(w.dir==="d"&&cell.r===w.r-1&&cell.c===w.c));
+    if(onThis&&cell.clues.length>1){cl=cell.clues.find(x=>x.dir!==w.dir);}
+    cl=cl||cell.clues.find(x=>x.dir===activeDir)||cell.clues[0];
+  }
   const r=cl.dir==="d"?cell.r+1:cell.r, c=cl.dir==="a"?cell.c+1:cell.c;
   const k=K(r,c);
   if(model.cells.has(k)&&!model.cells.get(k).isClue){activeKey=k;activeDir=cl.dir;focusHidden();refresh();}
