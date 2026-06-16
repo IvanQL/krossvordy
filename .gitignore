@@ -1,0 +1,6 @@
+node_modules/
+.env
+.DS_Store
+*.log
+# data/puzzles.json — можно коммитить (раздаётся фронту) или генерировать локально; раскомментируй, чтобы игнорировать:
+# data/puzzles.json

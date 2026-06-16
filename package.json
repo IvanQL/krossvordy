@@ -1,0 +1,18 @@
+{
+  "name": "krossvordy",
+  "version": "0.2.0",
+  "description": "Кроссворды и сканворды на русском — генерация + веб-приложение",
+  "private": true,
+  "scripts": {
+    "dev": "npx --yes serve web",
+    "gen": "node scripts/generate.js",
+    "gen:supabase": "node scripts/generate.js --supabase",
+    "bench": "node scripts/bench.js"
+  },
+  "optionalDependencies": {
+    "dotenv": "^16.4.5"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

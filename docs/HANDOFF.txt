@@ -1,0 +1,109 @@
+# CLAUDE.md — project context for an AI agent
+
+> Agents (Claude Code and others) read this file to continue development.
+> In short: what this is, what's already done and verified, which invariants you
+> must NOT break, and what to do next.
+
+## Goal
+A web app with Russian-language **crosswords and scanwords** (Scandinavian-style).
+Frontend is static; backend is **Supabase** (accounts + cross-device progress sync).
+Heavy puzzles are generated **offline** by a script and stored in the DB.
+
+## Locked decisions
+- Backend: **Supabase** (Postgres + Auth + RLS) — chosen because accounts/sync are required.
+- Scanwords: **full structure generation** (not fixed templates).
+- **Accounts** and progress sync are required.
+- The clue base grows **in combination**: dictionary/thesaurus + AI generation with review.
+- Heavy generation must NOT live in serverless functions (time limits) — offline only.
+
+## File map
+- `web/index.html`, `web/styles.css` — markup and styles (UI is in Russian).
+- `web/crossword.js` — crossword generator. Exports: `makeCrossword(entries, opts)`, `normalizeEntries`, `K`.
+- `web/scanword.js` — scanword generator. Exports: `makeScanword(entries, opts)`. Reuses `crossword.js`.
+- `web/dictionary.js` — word base: `const DICTIONARY=[{a,c,t}]` (229 words, NO «Ё» in `a`).
+- `web/app.js` — game logic and UI (currently plays crosswords, generated in the browser).
+- `scripts/generate.js` — offline generation → `data/puzzles.json` (+ upload to Supabase via REST).
+- `scripts/bench.js` — validation and measurements (`npm run bench`).
+- `supabase/schema.sql` — tables `words/puzzles/profiles/progress` + RLS + auto-profile.
+- `docs/ARCHITECTURE.md` — architecture and roadmap.
+
+## How to run
+- `npm run bench` — expect ~300/300 valid for BOTH crosswords and scanwords.
+- `npm run dev` — serve static `web/` locally (or VS Code "Live Server" on `web/index.html`).
+- `npm run gen` — writes puzzles to `data/puzzles.json`.
+- `npm run gen:supabase` — same + upload to Supabase (needs `.env`, see `.env.example`).
+
+## INVARIANTS — do not break
+1. **Shared code for browser and Node.** Each module ends with
+   `if (typeof module!=="undefined") module.exports=...`. In the browser it loads as a plain
+   `<script>` (classic scripts share one top-level lexical scope); in Node it's `require`d.
+   Script order in `index.html`: crossword → scanword → dictionary → app.
+2. **Do not re-declare** `K`, `shuffle`, `normalizeEntries`, `makeCrossword` in other files
+   (`const` in the shared scope → SyntaxError). In `app.js` reuse `K` from `crossword.js`.
+3. **Crossword grid quality** is enforced by checks in `tryPlace`: matching letter at each
+   crossing; empty cells BEFORE the start and AFTER the end of a word; empty perpendicular
+   neighbors for new cells; at least 1 crossing required. Result: fully connected, no letter
+   conflicts, no "ghost"/parasitic words. Any generator edit must keep `npm run bench` at 300/300.
+4. **Scanword relies on the crossword invariant:** the cell BEFORE each word's start is always
+   empty → it becomes the clue cell. Coordinates are shifted by +1,+1 (room for the top/left clue row/col).
+5. **Store answers without «Ё»** (Ё→Е), otherwise letters mismatch at crossings.
+
+## Data shapes
+- Crossword (`makeCrossword`):
+  `{ words:[{answer,clue,r,c,dir:"a"|"d",num}], rows, cols, count, cellsCount }`
+- Scanword (`makeScanword`):
+  `{ rows, cols, letters:[{r,c,ch}], defs:[{r,c,clues:[{dir,clue,answer}]}], words:[{answer,clue,r,c,dir}], count }`
+  (`dir:"a"` → arrow right →, `dir:"d"` → arrow down ↓; a clue cell may carry 2 arrows)
+- `puzzles` row: `{ type:"crossword"|"scanword", theme, difficulty, data: <see above> }`
+- Progress: `progress.filled` = `{"r,c":"Б", ...}`, plus `solved:boolean`.
+
+## What to do next (top priority first)
+1. **Scanword renderer on the frontend** (`web/`): a new display path for the `makeScanword`
+   shape — letter cells + clue cells with arrows (→/↓), no list and no numbering. Input/checking
+   like the crossword. Add a "Crossword / Scanword" toggle to the UI.
+2. **Wire Supabase into the frontend** (via `@supabase/supabase-js`, anon key):
+   - email login (signUp/signInWithPassword), a login screen;
+   - load puzzles from the `puzzles` table (or from `data/puzzles.json` as a fallback);
+   - save progress to `progress` (upsert on `user_id,puzzle_id`), restore it on startup.
+   Currently saving uses a local shim `Store` in `app.js`; replace/augment it with a Supabase layer.
+3. **Grow the base** in `web/dictionary.js` to 2–4k words with clues (dictionary + AI + review).
+   The larger the base, the denser the scanwords.
+4. (Later) **Dense backtracking filler** for commercial-grade scanword density:
+   word index by pattern ("_О_КА"), MRV heuristic, backtracking.
+5. (Later) Scheduled auto-generation (GitHub Actions) that keeps topping up `puzzles`.
+
+## Conventions
+- Vanilla JS, no frameworks or bundlers. UI text and clues are in Russian.
+- Free frontend hosting: Cloudflare Pages / Netlify (publish root = `web/`).
+
+---
+
+## Working via Claude Code
+
+Start: open the project folder in VS Code → in the integrated terminal run `claude`
+(or run `claude` in any terminal at the project root). The agent reads this file and
+`.claude/settings.json` automatically.
+
+### Common tasks and commands
+- After ANY edit to `crossword.js`/`scanword.js`/`dictionary.js`, verify generators:
+  `npm run bench` — it **must stay 300/300** valid. If it drops, the edit broke an invariant (see "INVARIANTS").
+- Play locally: `npm run dev`.
+- Generate puzzles to a file: `npm run gen`.
+- Upload puzzles to Supabase: `npm run gen:supabase` (needs `.env`; this is a network write, so it will ask first).
+
+### Definition of done for tasks from "What to do next"
+- Any generator edit is accompanied by a green `npm run bench`.
+- New frontend code uses no frameworks/build step; it loads via plain `<script>` tags
+  in the correct order (crossword → scanword → dictionary → app).
+- UI text stays in Russian.
+- Small, meaningful commits. **Do not push** (push is denied in settings) — a human does that.
+
+### Permissions (`.claude/settings.json`)
+The repo ships a `.claude/settings.json` with a safe set:
+- **allow**: read/search, edits inside `web/ scripts/ supabase/ docs/`, `npm run bench|dev|gen`, `git status|diff|log`.
+- **ask**: `npm install`, `git add|commit`, upload to Supabase.
+- **deny**: `rm -rf`, `git push`, `git reset --hard`, `curl/wget/ssh`, reading/writing `.env`.
+
+Rule evaluation order: deny → ask → allow (deny always wins). If you want the agent to edit
+files with no prompts, set `defaultMode` to `acceptEdits`; for maximum caution keep `default`.
+Put personal overrides in `.claude/settings.local.json`.
