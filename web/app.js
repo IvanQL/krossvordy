@@ -15,36 +15,8 @@ const SCAN_SIZES={small:{target:20,maxLen:5,tries:14,minWords:12,dense:true},med
 let model=null, activeKey=null, activeDir="a", celebrated=false, mode="crossword";
 const gridEl=$("grid"), hidden=$("hidden");
 
-// ---- мобильная клавиатура ----
+// ---- ввод: используем нативную клавиатуру через скрытый input ----
 const isMobile=window.matchMedia("(pointer:coarse) and (hover:none)").matches;
-(function buildSoftKbd(){
-  if(!isMobile)return;
-  hidden.setAttribute("inputmode","none");
-  const kbd=$("softkbd");
-  ["ЙЦУКЕНГШЩЗХ","ФЫВАПРОЛДЖЭ","ЯЧСМИТЬБЮ"].forEach((row,ri)=>{
-    const div=document.createElement("div");div.className="skrow";
-    [...row].forEach(ch=>{
-      const b=document.createElement("button");b.className="sk";b.textContent=ch;
-      b.addEventListener("pointerdown",e=>{e.preventDefault();if(model)typeLetter(ch);});
-      div.appendChild(b);
-    });
-    if(ri===2){
-      const d=document.createElement("button");d.className="sk del";d.textContent="⌫";
-      d.addEventListener("pointerdown",e=>{e.preventDefault();if(model)backspace();});
-      div.appendChild(d);
-    }
-    kbd.appendChild(div);
-  });
-})();
-
-// iOS: запрет масштабирования — иначе жест зума тянет и фикс-клавиатуру
-(function blockZoom(){
-  if(!isMobile)return;
-  ["gesturestart","gesturechange","gestureend"].forEach(ev=>
-    document.addEventListener(ev,e=>e.preventDefault(),{passive:false}));
-  document.addEventListener("touchstart",e=>{if(e.touches.length>1)e.preventDefault();},{passive:false});
-  document.addEventListener("touchmove",e=>{if(e.touches.length>1)e.preventDefault();},{passive:false});
-})();
 
 // ---- хранилище ----
 const Store={
@@ -217,10 +189,9 @@ function onClueTap(cell,dir){
   const k=K(r,c);
   if(model.cells.has(k)&&!model.cells.get(k).isClue){activeKey=k;activeDir=cl.dir;focusHidden();refresh();}
 }
-function selectFirst(){const w=model.ordered[0];activeDir=w.dir;activeKey=w.start;if(isMobile)$("softkbd").classList.add("show");refresh();}
+function selectFirst(){const w=model.ordered[0];activeDir=w.dir;activeKey=w.start;refresh();}
 function activeWord(){return model.cells.get(activeKey)[activeDir];}
 function focusHidden(){
-  if(isMobile){$("softkbd").classList.add("show");return;}
   hidden.value="";try{hidden.focus({preventScroll:true});}catch(e){hidden.focus();}
 }
 
