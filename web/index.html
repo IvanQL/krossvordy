@@ -18,6 +18,12 @@
 
   <div class="setup">
     <div class="field"><label>Тема</label><select id="themeSel"></select></div>
+    <div class="field"><label>Тип</label>
+      <select id="modeSel">
+        <option value="crossword">Кроссворд</option>
+        <option value="scanword">Сканворд</option>
+      </select>
+    </div>
     <div class="field"><label>Размер</label>
       <select id="sizeSel">
         <option value="small">Маленький</option>
@@ -37,11 +43,10 @@
   <div class="main">
     <div class="left">
       <div class="gridwrap"><div class="grid" id="grid"></div>
-        <div class="loading" id="loading"><div class="spinner"></div><div>Собираю кроссворд…</div></div>
+        <div class="loading" id="loading"><div class="spinner"></div><div class="load-text">Собираю кроссворд…</div></div>
       </div>
       <div class="controls">
-        <button class="btn primary" id="checkBtn">Проверить</button>
-        <button class="btn" id="hintBtn">Открыть букву</button>
+<button class="btn" id="hintBtn">Открыть букву</button>
         <button class="btn ghost" id="clearBtn" title="Очистить" aria-label="Очистить">⟲</button>
       </div>
       <div class="progress" id="progress"></div>
@@ -61,6 +66,7 @@
   <button class="btn" id="winClose" style="width:100%">Закрыть</button></div></div>
 
 
+<div id="softkbd"></div>
 <script src="crossword.js"></script>
 <script src="scanword.js"></script>
 <script src="dictionary.js"></script>

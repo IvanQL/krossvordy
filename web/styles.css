@@ -100,3 +100,25 @@ select{font-family:"Nunito";font-weight:700;font-size:14px;color:var(--ink);back
 .conf{position:absolute;width:11px;height:11px;border:1.5px solid var(--ink);border-radius:2px;top:-20px}
 @keyframes fall{to{transform:translateY(105vh) rotate(540deg)}}
 @media (prefers-reduced-motion: reduce){*{animation-duration:.001ms!important}}
+
+/* ---- мобильная клавиатура ---- */
+#softkbd{position:sticky;bottom:0;left:0;right:0;background:#D1C9BE;
+  border-top:1px solid rgba(40,36,61,.18);padding:8px 4px max(env(safe-area-inset-bottom,8px),8px);
+  display:none;user-select:none;z-index:30;touch-action:manipulation}
+#softkbd.show{display:block}
+.skrow{display:flex;justify-content:center;gap:5px;margin-bottom:5px}
+.sk{flex:1;max-width:36px;min-width:0;height:44px;border-radius:8px;
+  background:#fff;border:0;box-shadow:0 1px 0 rgba(40,36,61,.35);
+  font-family:"Nunito";font-size:15px;font-weight:700;color:var(--ink);
+  cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+.sk:active{background:#BFBAB3;box-shadow:none;transform:translateY(1px)}
+.sk.del{max-width:50px;font-size:18px;background:#AEA9A2;color:#fff}
+.sk.del:active{background:#9B9690}
+
+/* ---- сканворд ---- */
+.grid.scanword .gap{background:var(--ink)}
+.cell.clue-cell{background:var(--paper);border-color:rgba(40,36,61,.35);cursor:pointer;overflow:hidden}
+.cell.clue-cell .arrow{position:absolute;font-size:calc(var(--cs)*.42);line-height:1;font-weight:900;color:var(--ink)}
+.cell.clue-cell .arrow.a{bottom:1px;left:2px}
+.cell.clue-cell .arrow.d{top:1px;right:2px}
+.cell.clue-cell.clue-active{background:var(--berry-tint)}
